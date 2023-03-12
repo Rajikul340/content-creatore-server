@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = 5000;
-const { MongoClient, ServerApiVersion} = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId} = require("mongodb");
 
 
 app.use(cors());
@@ -18,50 +18,67 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
-const productCollection = client.db("SunRise").collection("products");
+const usersCollection = client.db("ContentCreator").collection("users");
+const contentCollection = client.db("ContentCreator").collection("content");
 
 async function run() {
 
-  try {
-
-    app.get("/product", async (req, res) => {
-      const query = {};
-      const result = await productCollection.find(query).toArray();
-      console.log('result', result);
-      res.send(result);
-    });
-  } catch (err) {
-    console.error(err);
-  }
-
-
-  try {
-    app.post("/product", async(req, res)=>{
-      const product  = req.body;
-      console.log('product', product);
-      const result = await productCollection.insertOne(product)
-      res.send(result)
-    })   
-
-  } catch (error) {
-    console.error(error)
+   try {
+    app.post("/users", async (req, res) => {
+        const users = req.body;
+        const result = await usersCollection.insertOne(users);
+        res.send(result);
+      });
     
-  }
+   } catch (error) {
+     console.error(error)
+   }
+   try {
+    app.post("/contents", async (req, res) => {
+        const content = req.body;
+        const result = await contentCollection.insertOne(content);
+        res.send(result);
+      });
+    
+   } catch (error) {
+     console.error(error)
+   }
 
-
-  try {
-
-    app.delete('/product/:id', async(req, res)=>{
-      const id = req.params.id;
-      console.log('id', id);
-      const query = {_id:Object(id)}
-      const result = await productCollection.deleteOne(query);
+   try {
+    app.get("/contents", async(req, res)=>{
+      const query ={};
+      const contentdata = await contentCollection.find(query);
+      const  result = await contentdata.toArray();
+      // console.log('result', result);
       res.send(result)
     })
-    
-  } catch (error) {
+   } catch (error) {
     console.error(error)
-  }
+    
+   }
+   try {
+    app.get("/contents/:id", async(req, res)=>{
+      const id = req.params.id
+      const query ={_id:new ObjectId(id)};
+      const contentdata = await contentCollection.findOne(query);
+      res.send(contentdata)
+    })
+   } catch (error) {
+    console.error(error)
+    
+   }
+   try {
+    app.delete("/contents/:id", async(req, res)=>{
+      const id = req.params.id;
+      console.log('id', id);
+      const query ={_id:new ObjectId(id)};
+      const deleteData = await contentCollection.deleteOne(query);
+      res.send(deleteData)
+    })
+   } catch (error) {
+    console.error(error)
+    
+   }
 }
 
 run();
